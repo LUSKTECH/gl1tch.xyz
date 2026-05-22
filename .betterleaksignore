@@ -1,0 +1,3 @@
+# Betterleaks ignore file
+# Add fingerprints from a scan output to whitelist intentional / false-positive findings.
+# See https://github.com/betterleaks/betterleaks
