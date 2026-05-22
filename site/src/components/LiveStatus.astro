@@ -1,0 +1,36 @@
+---
+type Props = { channel: string };
+const { channel } = Astro.props;
+---
+
+<live-status data-channel={channel}>
+  <span class="live-pill" data-status="offline" aria-live="polite">
+    <span data-label>Offline</span>
+  </span>
+</live-status>
+
+<script>
+  class LiveStatus extends HTMLElement {
+    connectedCallback() {
+      const channel = this.dataset.channel;
+      if (!channel) return;
+      fetch(`/api/live?channel=${encodeURIComponent(channel)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (!data) return;
+          const pill = this.querySelector<HTMLElement>('.live-pill');
+          const label = this.querySelector<HTMLElement>('[data-label]');
+          if (!pill || !label) return;
+          if (data.live) {
+            pill.dataset.status = 'live';
+            label.textContent = data.viewers != null ? `Live · ${data.viewers.toLocaleString()} watching` : 'Live now';
+          } else {
+            pill.dataset.status = 'offline';
+            label.textContent = 'Offline';
+          }
+        })
+        .catch(() => {});
+    }
+  }
+  customElements.define('live-status', LiveStatus);
+</script>

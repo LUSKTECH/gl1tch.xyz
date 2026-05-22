@@ -1,0 +1,32 @@
+# Migration artifacts (DB dump + wp-content tarball pulled from prod)
+_migration/
+
+# Local DDEV environment used only for content extraction
+.ddev/
+
+# Local-only planning + design docs — kept on disk, not published
+PLAN.md
+design-system/
+
+# Throwaway WordPress mirror at repo root — extracted into the Astro build, not
+# part of the source of truth. Remove the entire mirror once the Netlify cutover
+# is verified.
+/wp-admin/
+/wp-includes/
+/wp-content/
+/wp-*.php
+/xmlrpc.php
+/index.php
+/license.txt
+/readme.html
+
+# Build & deps
+node_modules/
+dist/
+.cache/
+.netlify/
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json

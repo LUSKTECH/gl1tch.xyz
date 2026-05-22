@@ -1,0 +1,54 @@
+---
+import Base from '../layouts/Base.astro';
+import { team } from '../data/site';
+---
+
+<Base title="Team" description="Meet the Toronto gl1tch crew and find us across platforms.">
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <header class="mb-10">
+      <p class="font-display text-xs uppercase tracking-[0.3em] text-[var(--color-accent-bright)]">The crew</p>
+      <h1 class="mt-2 font-display text-4xl font-black uppercase tracking-widest text-white sm:text-5xl">Team</h1>
+      <p class="mt-4 max-w-prose text-[var(--color-fg-muted)]">
+        Find us across PSN, Steam, and Xbox. Primary platform is what we play on most days — hit us up there first.
+      </p>
+    </header>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      {team.map((m) => (
+        <article class="card">
+          <header class="flex items-baseline justify-between gap-4">
+            <h2 class="font-display text-xl font-black uppercase tracking-wider text-white">{m.name}</h2>
+            <span class="font-display text-[0.65rem] uppercase tracking-[0.2em] text-[var(--color-accent-bright)]">
+              Primary · {m.primary}
+            </span>
+          </header>
+
+          <dl class="mt-5 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+            {m.psn && (
+              <>
+                <dt class="font-display text-[0.65rem] uppercase tracking-[0.2em] text-[var(--color-fg-muted)]">PSN</dt>
+                <dd class="font-mono text-white">{m.psn}</dd>
+              </>
+            )}
+            {m.steam && (
+              <>
+                <dt class="font-display text-[0.65rem] uppercase tracking-[0.2em] text-[var(--color-fg-muted)]">Steam</dt>
+                <dd class="font-mono">
+                  <a href={m.steam.url} target="_blank" rel="noopener noreferrer">{m.steam.name}</a>
+                </dd>
+              </>
+            )}
+            {m.xbl && (
+              <>
+                <dt class="font-display text-[0.65rem] uppercase tracking-[0.2em] text-[var(--color-fg-muted)]">XBL</dt>
+                <dd class="font-mono">
+                  <a href={m.xbl.url} target="_blank" rel="noopener noreferrer">{m.xbl.name}</a>
+                </dd>
+              </>
+            )}
+          </dl>
+        </article>
+      ))}
+    </div>
+  </section>
+</Base>
