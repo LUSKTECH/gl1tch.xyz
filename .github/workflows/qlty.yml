@@ -1,0 +1,71 @@
+name: qlty Code Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-secrets:
+    name: Check Secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has-qlty: ${{ steps.qlty.outputs.defined }}
+    steps:
+      - id: qlty
+        env:
+          TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+        run: |
+          if [ -n "${TOKEN:-}" ]; then
+            echo "defined=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "defined=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  qlty:
+    name: qlty Analysis
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-qlty == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./site
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      - run: npm test --if-present -- --coverage
+
+      - name: Install qlty CLI
+        uses: qltysh/qlty-action/install@main
+
+      - name: Publish coverage to qlty
+        if: hashFiles('site/coverage/lcov.info') != ''
+        run: qlty coverage publish coverage/lcov.info
+        env:
+          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+
+  skip-notice:
+    name: qlty Skip Notice
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-qlty != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice::qlty coverage upload skipped — QLTY_COVERAGE_TOKEN secret is not configured."

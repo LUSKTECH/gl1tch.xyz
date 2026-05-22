@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: ./site
+
+jobs:
+  check-secrets:
+    name: Check Secrets
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    outputs:
+      has-codecov: ${{ steps.codecov.outputs.defined }}
+    steps:
+      - id: codecov
+        shell: bash
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          if [ -n "${CODECOV_TOKEN:-}" ]; then
+            echo "defined=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "defined=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  typecheck:
+    name: Typecheck (astro check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run check
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: site/dist
+          retention-days: 7
+
+  test:
+    name: Test
+    needs: [check-secrets]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test --if-present -- --coverage
+
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() && needs.check-secrets.outputs.has-codecov == 'true' && hashFiles('site/coverage/lcov.info') != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: site/coverage/lcov.info
+          fail_ci_if_error: false
+          working-directory: ./site
+
+      - name: Codecov skip notice
+        if: ${{ !cancelled() && needs.check-secrets.outputs.has-codecov != 'true' }}
+        run: echo "::notice::Codecov upload skipped — CODECOV_TOKEN secret is not configured."

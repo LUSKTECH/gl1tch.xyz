@@ -1,0 +1,72 @@
+name: Discord Notification
+
+on:
+  workflow_run:
+    workflows: ['CI', 'Security', 'Lighthouse CI', 'Accessibility']
+    types: [completed]
+
+permissions:
+  actions: read
+
+jobs:
+  check-secrets:
+    name: Check Secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has-discord: ${{ steps.discord.outputs.defined }}
+    steps:
+      - id: discord
+        env:
+          TOKEN: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -n "${TOKEN:-}" ]; then
+            echo "defined=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "defined=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  notify:
+    name: Post to Discord
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-discord == 'true' && github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-latest
+    env:
+      WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      RUN_NAME: ${{ github.event.workflow_run.name }}
+      RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
+      RUN_ACTOR: ${{ github.event.workflow_run.actor.login }}
+      RUN_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Build payload and POST
+        run: |
+          color="3447003"
+          case "${RUN_CONCLUSION}" in
+            success) color="3066993" ;;
+            failure) color="15158332" ;;
+            *)       color="10181046" ;;
+          esac
+
+          payload=$(jq -n \
+            --arg title "${RUN_NAME} — ${RUN_CONCLUSION}" \
+            --arg url "${RUN_URL}" \
+            --arg repo "${REPO}" \
+            --arg branch "${RUN_BRANCH}" \
+            --arg actor "${RUN_ACTOR}" \
+            --argjson color "${color}" \
+            '{embeds:[{title:$title,url:$url,color:$color,fields:[
+              {name:"Repository",value:$repo,inline:true},
+              {name:"Branch",value:$branch,inline:true},
+              {name:"Triggered by",value:$actor,inline:true}
+            ]}]}')
+
+          curl -sf -X POST -H 'Content-Type: application/json' -d "${payload}" "${WEBHOOK}"
+
+  skip-notice:
+    name: Discord Skip Notice
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-discord != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice::Discord notification skipped — DISCORD_WEBHOOK_URL secret is not configured."

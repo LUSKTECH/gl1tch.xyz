@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discord
+    url: https://discord.gg/UJQKFDk
+    about: Casual questions and chat — faster than GitHub for hello-world stuff.
+  - name: 🔒 Report a security issue (private)
+    url: https://github.com/LUSKTECH/gl1tch.xyz/security/advisories/new
+    about: Use this for security vulnerabilities — do not file a public issue.

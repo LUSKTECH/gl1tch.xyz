@@ -9,6 +9,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "check": "astro check",
     "astro": "astro"
   },
   "dependencies": {
@@ -22,7 +23,9 @@
     "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.9",
     "@netlify/functions": "^5.2.2",
-    "@types/node": "^25.9.1"
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
   }
 }

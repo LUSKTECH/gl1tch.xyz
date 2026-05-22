@@ -1,0 +1,47 @@
+name: Accessibility
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  axe:
+    name: axe-core scan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./site
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Serve dist and scan
+        run: |
+          npx --yes serve dist -l 4321 &
+          SERVE_PID=$!
+          npx --yes wait-on http://localhost:4321 --timeout 30000
+
+          for path in "" "team" "stream/toronto" "stream/strain" "join" "thanks" "contact" "blog"; do
+            url="http://localhost:4321/${path}"
+            echo "::group::axe ${url}"
+            npx --yes @axe-core/cli "${url}" --exit --tags wcag2a,wcag2aa,wcag21aa,best-practice
+            echo "::endgroup::"
+          done
+
+          kill $SERVE_PID 2>/dev/null || true
