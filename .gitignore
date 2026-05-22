@@ -30,3 +30,9 @@ dist/
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+
+# Playwright / MCP artifacts left in the working dir during testing
+.playwright-mcp/
+
+# Stray sqlite files from other MCP servers running on this workstation
+proxmox-jobs.sqlite3*

@@ -15,16 +15,41 @@ import { site } from '../data/site';
 
       <div class="w-full max-w-3xl overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-black shadow-2xl shadow-cyan-500/10">
         <video
-          src="https://cdn.gl1tch.xyz/file/gl1tch-cdn/2020/12/MOSHED-2020-12-11-19-48-41.webm"
+          id="hero-video"
           class="block aspect-video w-full"
           autoplay
           loop
           muted
           playsinline
-          preload="metadata"
+          preload="auto"
+          disablepictureinpicture
           aria-label="Animated glitched intro loop"
-        ></video>
+        >
+          <source src="https://cdn.gl1tch.xyz/file/gl1tch-cdn/2020/12/MOSHED-2020-12-11-19-48-41.webm" type="video/webm" />
+        </video>
       </div>
+
+      <script>
+        // Some browsers defer autoplay until the page is fully ready, or block
+        // it until after user interaction. Retry play() once on load and once
+        // on first interaction; respect prefers-reduced-motion.
+        const video = document.getElementById('hero-video') as HTMLVideoElement | null;
+        if (video) {
+          const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+          const tryPlay = () => {
+            if (motion.matches) return;
+            const result = video.play();
+            if (result && typeof result.catch === 'function') result.catch(() => {});
+          };
+          tryPlay();
+          window.addEventListener('load', tryPlay, { once: true });
+          window.addEventListener('pointerdown', tryPlay, { once: true });
+          motion.addEventListener?.('change', (e) => {
+            if (e.matches) video.pause();
+            else tryPlay();
+          });
+        }
+      </script>
 
       <div class="flex flex-wrap items-center justify-center gap-3">
         <a class="btn btn-primary" href="/stream">Watch the stream</a>
