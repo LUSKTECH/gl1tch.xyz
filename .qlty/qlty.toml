@@ -34,5 +34,5 @@ name = "yamllint"
 name = "trivy"
 mode = "block"
 
-[[plugin]]
-name = "gitleaks"
+# Note: betterleaks runs as a dedicated Action in CI; qlty's local secret
+# scanning is handled by trivy above.

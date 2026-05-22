@@ -43,20 +43,25 @@ jobs:
             echo "defined=false" >> "$GITHUB_OUTPUT"
           fi
 
-  gitleaks:
-    name: Gitleaks Scan
+  betterleaks:
+    name: Betterleaks Secrets Scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
-          GITLEAKS_ENABLE_SUMMARY: true
+      - id: betterleaks
+        uses: dortort/betterleaks-action@v0.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          report-format: sarif
+          fail-on-leak: 'true'
+
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always() && steps.betterleaks.outputs.sarif-path != ''
+        with:
+          sarif_file: ${{ steps.betterleaks.outputs.sarif-path }}
 
   semgrep:
     name: Semgrep SAST
