@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+
+<Base>
+  <section class="relative">
+    <div class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 py-16 text-center sm:px-6 sm:py-24">
+      <h1 class="font-display text-4xl font-black uppercase tracking-[0.18em] text-white sm:text-6xl md:text-7xl">
+        <span class="glitch" data-text="Toronto gl1tch">Toronto gl1tch</span>
+      </h1>
+      <p class="max-w-prose text-sm uppercase tracking-[0.3em] text-[var(--color-fg-muted)] sm:text-base">
+        {site.tagline}
+      </p>
+
+      <div class="w-full max-w-3xl overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-black shadow-2xl shadow-cyan-500/10">
+        <video
+          src="https://cdn.gl1tch.xyz/file/gl1tch-cdn/2020/12/MOSHED-2020-12-11-19-48-41.webm"
+          class="block aspect-video w-full"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="Animated glitched intro loop"
+        ></video>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <a class="btn btn-primary" href="/stream">Watch the stream</a>
+        <a class="btn btn-ghost" href="/join">Join the gang</a>
+      </div>
+    </div>
+  </section>
+</Base>

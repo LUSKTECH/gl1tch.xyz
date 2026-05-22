@@ -1,0 +1,21 @@
+---
+type Props = {
+  channel: string;
+  parents: string[];
+};
+const { channel, parents } = Astro.props;
+const parentParams = parents.map((p) => `parent=${encodeURIComponent(p)}`).join('&');
+const src = `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&muted=true&${parentParams}`;
+---
+
+<div class="overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-black shadow-2xl shadow-cyan-500/10" style="aspect-ratio: 16 / 9">
+  <iframe
+    src={src}
+    title={`${channel} live stream`}
+    height="100%"
+    width="100%"
+    allowfullscreen
+    loading="lazy"
+    class="block h-full w-full"
+  ></iframe>
+</div>

@@ -1,0 +1,80 @@
+---
+import Base from '../layouts/Base.astro';
+
+const platforms = ['PC', 'PlayStation', 'Switch', 'Xbox', 'Other'] as const;
+---
+
+<Base title="Join Us" description="Apply to roll with the Toronto gl1tch crew.">
+  <section class="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+    <header class="mb-8">
+      <p class="font-display text-xs uppercase tracking-[0.3em] text-[var(--color-accent-bright)]">// Join us</p>
+      <h1 class="mt-2 font-display text-4xl font-black uppercase tracking-widest text-white sm:text-5xl">Roll with us</h1>
+      <p class="mt-4 text-[var(--color-fg-muted)]">
+        Drop your handles and tell us why you'd be a good fit. We read every submission — but we don't recruit every day, so expect a slow reply.
+      </p>
+    </header>
+
+    <form
+      name="join"
+      method="POST"
+      data-netlify="true"
+      data-netlify-honeypot="bot-field"
+      action="/thanks"
+      class="space-y-6"
+    >
+      <input type="hidden" name="form-name" value="join" />
+      <p class="hidden">
+        <label>Don't fill this out if you're human: <input name="bot-field" /></label>
+      </p>
+
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div>
+          <label class="label" for="name">Your name<span class="req" aria-hidden="true">*</span></label>
+          <input class="input" id="name" name="name" type="text" required autocomplete="name" placeholder="Required" />
+        </div>
+        <div>
+          <label class="label" for="email">Your email<span class="req" aria-hidden="true">*</span></label>
+          <input class="input" id="email" name="email" type="email" required autocomplete="email" placeholder="Required" />
+        </div>
+      </div>
+
+      <fieldset>
+        <legend class="label">Your platforms<span class="req" aria-hidden="true">*</span></legend>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {platforms.map((p) => (
+            <label class="flex cursor-pointer items-center gap-2 rounded-md border border-[var(--color-border-strong)] bg-black/40 px-3 py-3 text-sm has-[:checked]:border-[var(--color-accent)] has-[:checked]:bg-[var(--color-accent)]/15">
+              <input type="checkbox" name="platforms" value={p} class="h-4 w-4 accent-[var(--color-accent)]" />
+              <span>{p}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div>
+          <label class="label" for="nintendo-id">Nintendo ID</label>
+          <input class="input" id="nintendo-id" name="nintendo-id" type="text" placeholder="Optional" />
+        </div>
+        <div>
+          <label class="label" for="psn">PSN name</label>
+          <input class="input" id="psn" name="psn" type="text" placeholder="Optional" />
+        </div>
+        <div>
+          <label class="label" for="steam">Steam name</label>
+          <input class="input" id="steam" name="steam" type="text" placeholder="Optional" />
+        </div>
+        <div>
+          <label class="label" for="xbl">XBL gamertag</label>
+          <input class="input" id="xbl" name="xbl" type="text" placeholder="Optional" />
+        </div>
+      </div>
+
+      <div>
+        <label class="label" for="message">Why would you like to join?<span class="req" aria-hidden="true">*</span></label>
+        <textarea class="input textarea" id="message" name="message" required rows="5" placeholder="Tell us about the games you play and what you're looking for."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full sm:w-auto">Send</button>
+    </form>
+  </section>
+</Base>

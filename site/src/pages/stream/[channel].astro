@@ -1,0 +1,12 @@
+---
+import StreamPage from './_StreamPage.astro';
+import { channels } from '../../data/channels';
+
+export function getStaticPaths() {
+  return channels.map((c) => ({ params: { channel: c.slug }, props: { active: c } }));
+}
+
+const { active } = Astro.props;
+---
+
+<StreamPage active={active} />
