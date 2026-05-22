@@ -1,0 +1,130 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-secrets:
+    name: Check Secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has-snyk: ${{ steps.snyk.outputs.defined }}
+      has-semgrep: ${{ steps.semgrep.outputs.defined }}
+    steps:
+      - id: snyk
+        env:
+          TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          if [ -n "${TOKEN:-}" ]; then
+            echo "defined=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "defined=false" >> "$GITHUB_OUTPUT"
+          fi
+      - id: semgrep
+        env:
+          TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+        run: |
+          if [ -n "${TOKEN:-}" ]; then
+            echo "defined=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "defined=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  gitleaks:
+    name: Gitleaks Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
+          GITLEAKS_ENABLE_SUMMARY: true
+
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run Semgrep
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+        run: |
+          if [ -n "${SEMGREP_APP_TOKEN:-}" ]; then
+            semgrep ci
+          else
+            semgrep scan --config p/ci --config p/typescript --config p/javascript --config p/secrets --error
+          fi
+
+  snyk:
+    name: Snyk Vulnerability Scan
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-snyk == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./site
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      - uses: snyk/actions/setup@master
+
+      - run: snyk test --severity-threshold=high --all-projects
+
+  snyk-skip-notice:
+    name: Snyk Skip Notice
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-snyk != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice::Snyk scan skipped — SNYK_TOKEN secret is not configured."
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript-typescript'

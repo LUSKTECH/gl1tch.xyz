@@ -1,0 +1,38 @@
+config_version = "0"
+
+exclude_patterns = [
+  "site/node_modules/**",
+  "site/dist/**",
+  "site/.astro/**",
+  "site/coverage/**",
+  "site/public/**",
+  "_migration/**",
+  "design-system/**",
+]
+
+[[source]]
+name = "default"
+default = true
+
+[[plugin]]
+name = "prettier"
+files = ["**/*.{ts,tsx,js,jsx,astro,css,md,json,yml,yaml}"]
+
+[[plugin]]
+name = "eslint"
+
+[[plugin]]
+name = "actionlint"
+
+[[plugin]]
+name = "markdownlint"
+
+[[plugin]]
+name = "yamllint"
+
+[[plugin]]
+name = "trivy"
+mode = "block"
+
+[[plugin]]
+name = "gitleaks"

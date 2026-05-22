@@ -1,0 +1,88 @@
+name: Codacy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-secrets:
+    name: Check Secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has-codacy: ${{ steps.codacy.outputs.defined }}
+    steps:
+      - id: codacy
+        env:
+          TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        run: |
+          if [ -n "${TOKEN:-}" ]; then
+            echo "defined=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "defined=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  codacy-security-scan:
+    name: Codacy Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: codacy/codacy-analysis-cli-action@v4
+        with:
+          format: sarif
+          output: results.sarif
+          gh-code-scanning-compat: true
+          max-allowed-issues: 2147483647
+          tool-timeout: 30m
+
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+
+  codacy-coverage:
+    name: Codacy Coverage Upload
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-codacy == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./site
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      - run: npm test --if-present -- --coverage
+
+      - name: Upload coverage to Codacy
+        if: hashFiles('site/coverage/lcov.info') != ''
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: site/coverage/lcov.info
+
+  codacy-skip-notice:
+    name: Codacy Coverage Skip Notice
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-codacy != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice::Codacy coverage upload skipped — CODACY_PROJECT_TOKEN secret is not configured."

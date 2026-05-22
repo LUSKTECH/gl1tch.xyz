@@ -1,0 +1,13 @@
+# CODEOWNERS — automatic review requests
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner
+*                       @lusky3
+
+# Astro app
+/site/                  @lusky3
+
+# CI / governance
+/.github/               @lusky3
+/LICENSE                @lusky3
+/README.md              @lusky3

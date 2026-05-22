@@ -1,0 +1,67 @@
+name: SonarQube
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-secrets:
+    name: Check Secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has-sonar: ${{ steps.sonar.outputs.defined }}
+    steps:
+      - id: sonar
+        env:
+          TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "${TOKEN:-}" ]; then
+            echo "defined=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "defined=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  sonarqube:
+    name: SonarQube Scan
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-sonar == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - working-directory: ./site
+        run: npm ci
+
+      - working-directory: ./site
+        run: npm test --if-present -- --coverage || true
+
+      - uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  skip-notice:
+    name: SonarQube Skip Notice
+    needs: [check-secrets]
+    if: needs.check-secrets.outputs.has-sonar != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice::SonarQube scan skipped — SONAR_TOKEN secret is not configured."
