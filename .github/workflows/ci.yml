@@ -97,7 +97,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: ${{ !cancelled() && needs.check-secrets.outputs.has-codecov == 'true' && hashFiles('site/coverage/lcov.info') != '' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: site/coverage/lcov.info
