@@ -18,7 +18,7 @@
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/orbitron": "^5.2.8",
     "@tailwindcss/vite": "^4.3.0",
-    "astro": "^6.4.6",
+    "astro": "^6.4.8",
     "lucide-static": "^1.17.0",
     "tailwindcss": "^4.3.0"
   },
