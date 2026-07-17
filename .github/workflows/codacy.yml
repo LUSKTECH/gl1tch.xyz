@@ -18,7 +18,7 @@ concurrency:
 jobs:
   check-secrets:
     name: Check Secrets
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     outputs:
       has-codacy: ${{ steps.codacy.outputs.defined }}
     steps:
@@ -34,7 +34,7 @@ jobs:
 
   codacy-security-scan:
     name: Codacy Security Scan
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -55,7 +55,7 @@ jobs:
     name: Codacy Coverage Upload
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-codacy == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     defaults:
       run:
         working-directory: ./site
@@ -83,6 +83,6 @@ jobs:
     name: Codacy Coverage Skip Notice
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-codacy != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     steps:
       - run: echo "::notice::Codacy coverage upload skipped — CODACY_PROJECT_TOKEN secret is not configured."

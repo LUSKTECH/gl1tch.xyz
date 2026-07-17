@@ -11,7 +11,7 @@ permissions:
 jobs:
   check-secrets:
     name: Check Secrets
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     outputs:
       has-discord: ${{ steps.discord.outputs.defined }}
     steps:
@@ -29,7 +29,7 @@ jobs:
     name: Post to Discord
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-discord == 'true' && github.event.workflow_run.conclusion != 'cancelled'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     env:
       WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
       RUN_NAME: ${{ github.event.workflow_run.name }}
@@ -67,6 +67,6 @@ jobs:
     name: Discord Skip Notice
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-discord != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     steps:
       - run: echo "::notice::Discord notification skipped — DISCORD_WEBHOOK_URL secret is not configured."
