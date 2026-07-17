@@ -16,7 +16,7 @@ concurrency:
 jobs:
   check-secrets:
     name: Check Secrets
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     outputs:
       has-qlty: ${{ steps.qlty.outputs.defined }}
     steps:
@@ -34,7 +34,7 @@ jobs:
     name: qlty Analysis
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-qlty == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     defaults:
       run:
         working-directory: ./site
@@ -66,6 +66,6 @@ jobs:
     name: qlty Skip Notice
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-qlty != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     steps:
       - run: echo "::notice::qlty coverage upload skipped — QLTY_COVERAGE_TOKEN secret is not configured."

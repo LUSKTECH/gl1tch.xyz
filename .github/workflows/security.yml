@@ -19,7 +19,7 @@ concurrency:
 jobs:
   check-secrets:
     name: Check Secrets
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     outputs:
       has-snyk: ${{ steps.snyk.outputs.defined }}
       has-semgrep: ${{ steps.semgrep.outputs.defined }}
@@ -45,7 +45,7 @@ jobs:
 
   betterleaks:
     name: Betterleaks Secrets Scan
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -65,7 +65,7 @@ jobs:
 
   semgrep:
     name: Semgrep SAST
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     container:
       image: semgrep/semgrep
     steps:
@@ -85,7 +85,7 @@ jobs:
     name: Snyk Vulnerability Scan
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-snyk == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     defaults:
       run:
         working-directory: ./site
@@ -110,13 +110,13 @@ jobs:
     name: Snyk Skip Notice
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-snyk != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     steps:
       - run: echo "::notice::Snyk scan skipped — SNYK_TOKEN secret is not configured."
 
   codeql:
     name: CodeQL
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     permissions:
       security-events: write
       packages: read
