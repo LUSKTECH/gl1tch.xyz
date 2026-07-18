@@ -59,7 +59,14 @@ jobs:
               .analyze();
             console.log(`::group::axe ${url} — ${violations.length} violation(s)`);
             for (const v of violations) {
-              console.log(`  [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} node(s))`);
+              console.log(`  [${v.impact}] ${v.id}: ${v.help}`);
+              for (const n of v.nodes) {
+                console.log(`    target: ${n.target.join(' ')}`);
+                console.log(`    html: ${n.html}`);
+                for (const chk of (n.any || [])) {
+                  if (chk.data) console.log(`    data: ${JSON.stringify(chk.data)}`);
+                }
+              }
             }
             console.log('::endgroup::');
             if (violations.length > 0) failed = true;
