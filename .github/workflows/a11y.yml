@@ -14,34 +14,55 @@ concurrency:
 jobs:
   axe:
     name: axe-core scan
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    # PROTOTYPE: runs on self-hosted (amy) inside the Playwright image, which
+    # bundles Chromium + all browser deps. Host needs only Docker — no Chrome/
+    # ChromeDriver installed on the box. Scan uses @axe-core/playwright.
+    runs-on: [self-hosted, linux, x64]
+    container:
+      image: mcr.microsoft.com/playwright:v1.49.0-jammy
     defaults:
       run:
         working-directory: ./site
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: site/package-lock.json
-
       - run: npm ci
 
       - run: npm run build
 
-      - name: Serve dist and scan
+      - name: Serve dist and scan (axe via Playwright/Chromium)
         run: |
+          npm i --no-save playwright@1.49.0 @axe-core/playwright@4
           npx --yes serve dist -l 4321 &
-          SERVE_PID=$!
           npx --yes wait-on http://localhost:4321 --timeout 30000
+          node --input-type=module - <<'EOF'
+          import { chromium } from 'playwright';
+          import AxeBuilder from '@axe-core/playwright';
 
-          for path in "" "team" "stream/toronto" "stream/strain" "join" "thanks" "contact" "blog"; do
-            url="http://localhost:4321/${path}"
-            echo "::group::axe ${url}"
-            npx --yes @axe-core/cli "${url}" --exit --tags wcag2a,wcag2aa,wcag21aa,best-practice
-            echo "::endgroup::"
-          done
+          const paths = ["", "team", "stream/toronto", "stream/strain", "join", "thanks", "contact", "blog"];
+          const browser = await chromium.launch({ args: ['--no-sandbox'] });
+          let failed = false;
 
-          kill $SERVE_PID 2>/dev/null || true
+          for (const p of paths) {
+            const url = `http://localhost:4321/${p}`;
+            const page = await browser.newPage();
+            await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+            const { violations } = await new AxeBuilder({ page })
+              .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'best-practice'])
+              .analyze();
+            console.log(`::group::axe ${url} — ${violations.length} violation(s)`);
+            for (const v of violations) {
+              console.log(`  [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} node(s))`);
+            }
+            console.log('::endgroup::');
+            if (violations.length > 0) failed = true;
+            await page.close();
+          }
+
+          await browser.close();
+          if (failed) {
+            console.log('::error::Accessibility violations found');
+            process.exit(1);
+          }
+          console.log('No accessibility violations found.');
+          EOF
