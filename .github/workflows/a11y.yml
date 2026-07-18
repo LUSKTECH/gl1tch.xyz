@@ -55,6 +55,7 @@ jobs:
             const page = await context.newPage();
             await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
             const { violations } = await new AxeBuilder({ page })
+              .exclude('iframe') // third-party embeds (Twitch player + its ad pixel) — not our markup
               .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'best-practice'])
               .analyze();
             console.log(`::group::axe ${url} — ${violations.length} violation(s)`);

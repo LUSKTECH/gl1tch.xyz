@@ -95,7 +95,8 @@
   }
   .btn-primary {
     background: var(--color-accent);
-    color: var(--color-fg);
+    /* dark text on the bright cyan meets WCAG AA (4.85:1); white was 3.68:1 */
+    color: var(--color-bg);
     box-shadow: 0 0 0 1px var(--color-accent), 0 8px 24px -8px rgb(8 145 178 / 0.6);
   }
   .btn-primary:hover {
