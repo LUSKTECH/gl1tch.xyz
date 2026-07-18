@@ -14,10 +14,10 @@ concurrency:
 jobs:
   axe:
     name: axe-core scan
-    # PROTOTYPE: runs on self-hosted (amy) inside the Playwright image, which
-    # bundles Chromium + all browser deps. Host needs only Docker — no Chrome/
-    # ChromeDriver installed on the box. Scan uses @axe-core/playwright.
-    runs-on: [self-hosted, linux, x64]
+    # Portable via the Playwright image (bundles Chromium + browser deps): runs on
+    # cloud (default) or a self-hosted runner (CI_RUNNER=self-hosted) with only
+    # Docker on the host. Scan uses @axe-core/playwright (no host Chrome needed).
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     container:
       image: mcr.microsoft.com/playwright:v1.49.0-jammy
     defaults:

@@ -40,8 +40,9 @@ jobs:
 
   typecheck:
     name: Typecheck (astro check)
-    # PROTOTYPE: runs on self-hosted (amy) inside a node container — host needs only Docker.
-    runs-on: [self-hosted, linux, x64]
+    # Container makes this portable: runs identically on cloud (default) or a
+    # self-hosted runner (set CI_RUNNER=self-hosted) — the host only needs Docker.
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     container:
       image: node:22-bookworm
     steps:
@@ -53,7 +54,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     container:
       image: node:22-bookworm
     steps:
@@ -73,7 +74,7 @@ jobs:
   test:
     name: Test
     needs: [check-secrets]
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     container:
       image: node:22-bookworm
     steps:
