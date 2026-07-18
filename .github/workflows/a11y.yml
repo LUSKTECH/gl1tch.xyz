@@ -26,6 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Playwright image bundles Node 22.11; Astro needs >=22.12. Pin a
+      # compatible Node (browsers still come from the image via PLAYWRIGHT_BROWSERS_PATH).
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
       - run: npm ci
 
       - run: npm run build
