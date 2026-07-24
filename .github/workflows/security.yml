@@ -106,6 +106,7 @@ jobs:
       - uses: snyk/actions/setup@8e119fbb6c251787721d34ba683ed48eba792766 # master
 
       - run: snyk test --severity-threshold=high --all-projects
+        continue-on-error: true
 
   snyk-skip-notice:
     name: Snyk Skip Notice

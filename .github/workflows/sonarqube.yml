@@ -24,8 +24,9 @@ jobs:
       - id: sonar
         env:
           TOKEN: ${{ secrets.SONAR_TOKEN }}
+          HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          if [ -n "${TOKEN:-}" ]; then
+          if [ -n "${TOKEN:-}" ] && [ -n "${HOST_URL:-}" ]; then
             echo "defined=true" >> "$GITHUB_OUTPUT"
           else
             echo "defined=false" >> "$GITHUB_OUTPUT"
