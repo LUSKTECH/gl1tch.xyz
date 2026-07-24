@@ -19,9 +19,9 @@ jobs:
       run:
         working-directory: ./site
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: npm
@@ -30,6 +30,10 @@ jobs:
       - run: npm ci
 
       - run: npm run build
+
+      - name: Install matching Chrome + ChromeDriver
+        run: npx --yes browser-driver-manager install chrome
+        working-directory: .
 
       - name: Serve dist and scan
         run: |
