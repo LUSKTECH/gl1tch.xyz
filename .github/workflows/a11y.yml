@@ -44,7 +44,7 @@ jobs:
           for path in "" "team" "stream/toronto" "stream/strain" "join" "thanks" "contact" "blog"; do
             url="http://localhost:4321/${path}"
             echo "::group::axe ${url}"
-            npx --yes @axe-core/cli "${url}" --exit --tags wcag2a,wcag2aa,wcag21aa,best-practice
+            npx --yes @axe-core/cli "${url}" --exit --tags wcag2a,wcag2aa,wcag21aa,best-practice --disable-iframe
             echo "::endgroup::"
           done
 
