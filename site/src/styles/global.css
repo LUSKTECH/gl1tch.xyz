@@ -94,12 +94,12 @@
     min-height: 44px;
   }
   .btn-primary {
-    background: var(--color-accent);
+    background: #0e7490;
     color: var(--color-fg);
     box-shadow: 0 0 0 1px var(--color-accent), 0 8px 24px -8px rgb(8 145 178 / 0.6);
   }
   .btn-primary:hover {
-    background: var(--color-accent-bright);
+    background: #0c6b84;
     text-decoration: none;
     transform: translateY(-1px);
   }
