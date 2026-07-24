@@ -1,7 +1,7 @@
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: 'npx serve dist -l 4321',
+      startServerCommand: 'npx serve site/dist -l 4321',
       startServerReadyPattern: 'Accepting connections',
       url: [
         'http://localhost:4321/',

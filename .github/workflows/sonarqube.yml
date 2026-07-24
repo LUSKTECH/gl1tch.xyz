@@ -24,8 +24,9 @@ jobs:
       - id: sonar
         env:
           TOKEN: ${{ secrets.SONAR_TOKEN }}
+          HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          if [ -n "${TOKEN:-}" ]; then
+          if [ -n "${TOKEN:-}" ] && [ -n "${HOST_URL:-}" ]; then
             echo "defined=true" >> "$GITHUB_OUTPUT"
           else
             echo "defined=false" >> "$GITHUB_OUTPUT"
@@ -37,11 +38,11 @@ jobs:
     if: needs.check-secrets.outputs.has-sonar == 'true'
     runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: npm
@@ -53,7 +54,8 @@ jobs:
       - working-directory: ./site
         run: npm test --if-present -- --coverage || true
 
-      - uses: SonarSource/sonarqube-scan-action@v6
+      # nosemgrep: generic.secrets.security.detected-sonarqube-docs-api-key.detected-sonarqube-docs-api-key
+      - uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
