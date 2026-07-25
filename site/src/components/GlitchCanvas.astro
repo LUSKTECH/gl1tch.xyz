@@ -1,0 +1,150 @@
+---
+// No props needed — self-contained WebGL canvas
+---
+
+<canvas
+  id="glitch-bg"
+  class="fixed inset-0 -z-10 h-full w-full"
+  aria-hidden="true"
+></canvas>
+
+<script>
+  import vertSrc from '../shaders/fullscreen.vert.glsl?raw';
+  import fragSrc from '../shaders/glitch.frag.glsl?raw';
+
+  function initGlitchBg() {
+    const canvas = document.getElementById('glitch-bg') as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    const gl = canvas.getContext('webgl2', { alpha: false, antialias: false });
+    if (!gl) {
+      canvas.remove();
+      return;
+    }
+
+    function compile(type: number, source: string): WebGLShader | null {
+      const shader = gl!.createShader(type);
+      if (!shader) return null;
+      gl!.shaderSource(shader, source);
+      gl!.compileShader(shader);
+      if (!gl!.getShaderParameter(shader, gl!.COMPILE_STATUS)) {
+        console.error('Shader compile error:', gl!.getShaderInfoLog(shader));
+        gl!.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    }
+
+    const vert = compile(gl.VERTEX_SHADER, vertSrc);
+    const frag = compile(gl.FRAGMENT_SHADER, fragSrc);
+    if (!vert || !frag) { canvas.remove(); return; }
+
+    const program = gl.createProgram()!;
+    gl.attachShader(program, vert);
+    gl.attachShader(program, frag);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error('Program link error:', gl.getProgramInfoLog(program));
+      canvas.remove();
+      return;
+    }
+    gl.useProgram(program);
+
+    // --- Uniforms ---
+    const uTime = gl.getUniformLocation(program, 'uTime');
+    const uResolution = gl.getUniformLocation(program, 'uResolution');
+    const uMotion = gl.getUniformLocation(program, 'uMotion');
+    const uLogo = gl.getUniformLocation(program, 'uLogo');
+    const uMouse = gl.getUniformLocation(program, 'uMouse');
+    const uClick = gl.getUniformLocation(program, 'uClick');
+
+    // --- Empty VAO for vertex-ID-based fullscreen triangle ---
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+
+    // --- Load texture ---
+    const texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([15, 23, 42, 255]));
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      gl!.bindTexture(gl!.TEXTURE_2D, texture);
+      gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.RGBA, gl!.RGBA, gl!.UNSIGNED_BYTE, img);
+      gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MIN_FILTER, gl!.LINEAR);
+      gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MAG_FILTER, gl!.LINEAR);
+      gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_S, gl!.CLAMP_TO_EDGE);
+      gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_T, gl!.CLAMP_TO_EDGE);
+    };
+    img.src = '/logo-solid.png';
+    gl.uniform1i(uLogo, 0);
+
+    // --- Motion preference ---
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let motionEnabled = !motionQuery.matches;
+    motionQuery.addEventListener('change', (e) => { motionEnabled = !e.matches; });
+
+    // --- Mouse tracking ---
+    let mouseX = 0.5;
+    let mouseY = 0.5;
+    let clickIntensity = 0.0;
+    let lastClickTime = 0;
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX / window.innerWidth;
+      mouseY = 1.0 - (e.clientY / window.innerHeight); // flip Y for GL coords
+    });
+
+    document.addEventListener('mousedown', () => {
+      clickIntensity = 1.0;
+      lastClickTime = performance.now();
+    });
+
+    // --- Resize handler ---
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      const w = canvas!.clientWidth * dpr;
+      const h = canvas!.clientHeight * dpr;
+      if (canvas!.width !== w || canvas!.height !== h) {
+        canvas!.width = w;
+        canvas!.height = h;
+        gl!.viewport(0, 0, w, h);
+      }
+    }
+
+    // --- Render loop ---
+    let raf: number;
+    function frame(t: number) {
+      resize();
+
+      // Decay click intensity over 400ms
+      const elapsed = t - lastClickTime;
+      clickIntensity = Math.max(0.0, 1.0 - elapsed / 400);
+
+      gl!.uniform1f(uTime, t * 0.001);
+      gl!.uniform2f(uResolution, canvas!.width, canvas!.height);
+      gl!.uniform1f(uMotion, motionEnabled ? 1.0 : 0.0);
+      gl!.uniform2f(uMouse, mouseX, mouseY);
+      gl!.uniform1f(uClick, clickIntensity);
+      gl!.drawArrays(gl!.TRIANGLES, 0, 3);
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+
+    // Cleanup on navigation (Astro View Transitions)
+    document.addEventListener('astro:before-swap', () => {
+      cancelAnimationFrame(raf);
+      gl!.deleteProgram(program);
+      gl!.deleteShader(vert);
+      gl!.deleteShader(frag);
+      gl!.deleteTexture(texture);
+      gl!.deleteVertexArray(vao);
+    }, { once: true });
+  }
+
+  // Run on initial load and after Astro navigation
+  initGlitchBg();
+  document.addEventListener('astro:after-swap', initGlitchBg);
+</script>

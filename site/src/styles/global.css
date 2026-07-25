@@ -58,24 +58,7 @@
   }
   ::selection { background: var(--color-accent); color: var(--color-fg); }
 
-  /* CRT scanline overlay — only when motion + opt-in OK */
-  @media (prefers-reduced-motion: no-preference) {
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 1;
-      background: repeating-linear-gradient(
-        to bottom,
-        transparent 0,
-        transparent 2px,
-        rgb(255 255 255 / 0.025) 3px,
-        transparent 4px
-      );
-      mix-blend-mode: overlay;
-    }
-  }
+
 }
 
 @layer components {
