@@ -1,55 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
+import GlitchCanvas from '../components/GlitchCanvas.astro';
 import { site } from '../data/site';
 ---
 
 <Base>
-  <section class="relative">
+  <GlitchCanvas />
+
+  <section class="relative min-h-[80dvh] flex items-center justify-center">
     <div class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 py-16 text-center sm:px-6 sm:py-24">
-      <h1 class="font-display text-4xl font-black uppercase tracking-[0.18em] text-white sm:text-6xl md:text-7xl">
+      <h1 class="font-display text-4xl font-black uppercase tracking-[0.18em] text-white sm:text-6xl md:text-7xl drop-shadow-[0_0_40px_rgba(8,145,178,0.4)]">
         <span class="glitch" data-text="Toronto gl1tch">Toronto gl1tch</span>
       </h1>
       <p class="max-w-prose text-sm uppercase tracking-[0.3em] text-[var(--color-fg-muted)] sm:text-base">
         {site.tagline}
       </p>
-
-      <div class="w-full max-w-3xl overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-black shadow-2xl shadow-cyan-500/10">
-        <video
-          id="hero-video"
-          class="block aspect-video w-full"
-          autoplay
-          loop
-          muted
-          playsinline
-          preload="auto"
-          disablepictureinpicture
-          aria-label="Animated glitched intro loop"
-        >
-          <source src="https://cdn.gl1tch.xyz/file/gl1tch-cdn/2020/12/MOSHED-2020-12-11-19-48-41.webm" type="video/webm" />
-        </video>
-      </div>
-
-      <script>
-        // Some browsers defer autoplay until the page is fully ready, or block
-        // it until after user interaction. Retry play() once on load and once
-        // on first interaction; respect prefers-reduced-motion.
-        const video = document.getElementById('hero-video') as HTMLVideoElement | null;
-        if (video) {
-          const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-          const tryPlay = () => {
-            if (motion.matches) return;
-            const result = video.play();
-            if (result && typeof result.catch === 'function') result.catch(() => {});
-          };
-          tryPlay();
-          window.addEventListener('load', tryPlay, { once: true });
-          window.addEventListener('pointerdown', tryPlay, { once: true });
-          motion.addEventListener?.('change', (e) => {
-            if (e.matches) video.pause();
-            else tryPlay();
-          });
-        }
-      </script>
 
       <div class="flex flex-wrap items-center justify-center gap-3">
         <a class="btn btn-primary" href="/stream">Watch the stream</a>
