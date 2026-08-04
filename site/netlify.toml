@@ -44,3 +44,9 @@
   from = "/join-us"
   to = "/join"
   status = 301
+
+# Ensure /thanks without trailing slash resolves correctly
+[[redirects]]
+  from = "/thanks"
+  to = "/thanks/"
+  status = 301
