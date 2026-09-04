@@ -20,7 +20,7 @@
     "@tailwindcss/vite": "4.3.3",
     "astro": "7.2.9",
     "lucide-static": "1.33.0",
-    "sharp": "0.35.3",
+    "sharp": "0.35.4",
     "tailwindcss": "4.3.3"
   },
   "devDependencies": {
@@ -32,6 +32,6 @@
   "overrides": {
     "@opentelemetry/core": "^2.8.0",
     "nanoid": "^3.3.18",
-    "sharp": "0.35.3"
+    "sharp": "0.35.4"
   }
 }
