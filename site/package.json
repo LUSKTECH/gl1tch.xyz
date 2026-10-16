@@ -13,12 +13,12 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/netlify": "8.2.6",
+    "@astrojs/netlify": "8.2.9",
     "@astrojs/sitemap": "3.7.4",
     "@fontsource/jetbrains-mono": "5.3.0",
     "@fontsource/orbitron": "5.3.0",
     "@tailwindcss/vite": "4.3.3",
-    "astro": "7.3.5",
+    "astro": "7.3.8",
     "lucide-static": "1.48.0",
     "sharp": "0.35.5",
     "tailwindcss": "4.3.3"
