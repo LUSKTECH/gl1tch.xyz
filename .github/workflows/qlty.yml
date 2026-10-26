@@ -16,7 +16,7 @@ concurrency:
 jobs:
   check-secrets:
     name: Check Secrets
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     outputs:
       has-qlty: ${{ steps.qlty.outputs.defined }}
     steps:
@@ -34,7 +34,7 @@ jobs:
     name: qlty Analysis
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-qlty == 'true'
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     defaults:
       run:
         working-directory: ./site
@@ -45,7 +45,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: site/package-lock.json
 
@@ -66,6 +66,6 @@ jobs:
     name: qlty Skip Notice
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-qlty != 'true'
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     steps:
       - run: echo "::notice::qlty coverage upload skipped — QLTY_COVERAGE_TOKEN secret is not configured."

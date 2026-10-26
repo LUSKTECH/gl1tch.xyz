@@ -18,7 +18,7 @@ concurrency:
 jobs:
   check-secrets:
     name: Check Secrets
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     outputs:
       has-codacy: ${{ steps.codacy.outputs.defined }}
     steps:
@@ -34,7 +34,7 @@ jobs:
 
   codacy-security-scan:
     name: Codacy Security Scan
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
@@ -46,7 +46,7 @@ jobs:
           max-allowed-issues: 2147483647
           tool-timeout: 30m
 
-      - uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
+      - uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
         if: always()
         continue-on-error: true
         with:
@@ -57,7 +57,7 @@ jobs:
     name: Codacy Coverage Upload
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-codacy == 'true'
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     defaults:
       run:
         working-directory: ./site
@@ -66,7 +66,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: site/package-lock.json
 
@@ -85,6 +85,6 @@ jobs:
     name: Codacy Coverage Skip Notice
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-codacy != 'true'
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     steps:
       - run: echo "::notice::Codacy coverage upload skipped — CODACY_PROJECT_TOKEN secret is not configured."
