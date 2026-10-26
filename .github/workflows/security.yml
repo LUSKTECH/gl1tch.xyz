@@ -19,7 +19,7 @@ concurrency:
 jobs:
   check-secrets:
     name: Check Secrets
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     outputs:
       has-snyk: ${{ steps.snyk.outputs.defined }}
       has-semgrep: ${{ steps.semgrep.outputs.defined }}
@@ -45,7 +45,7 @@ jobs:
 
   betterleaks:
     name: Betterleaks Secrets Scan
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -66,7 +66,7 @@ jobs:
 
   semgrep:
     name: Semgrep SAST
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     container:
       image: semgrep/semgrep
     steps:
@@ -86,7 +86,7 @@ jobs:
     name: Snyk Vulnerability Scan
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-snyk == 'true'
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     defaults:
       run:
         working-directory: ./site
@@ -97,7 +97,7 @@ jobs:
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: site/package-lock.json
 
@@ -112,13 +112,13 @@ jobs:
     name: Snyk Skip Notice
     needs: [check-secrets]
     if: needs.check-secrets.outputs.has-snyk != 'true'
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     steps:
       - run: echo "::notice::Snyk scan skipped — SNYK_TOKEN secret is not configured."
 
   codeql:
     name: CodeQL
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-26.04' }}
     permissions:
       security-events: write
       packages: read
